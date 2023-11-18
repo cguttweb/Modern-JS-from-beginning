@@ -19,16 +19,67 @@ function getData(endpoint) {
   });
 }
 
-getData('./movies.json')
-  .then((movies) => {
-    console.log(movies);
-    return getData('./actors.json');
-  })
-  .then((actors) => {
-    console.log(actors);
-    return getData('./directors.json');
-  })
-  .then((directors) => {
-    console.log(directors);
-  })
-  .catch((error) => console.log(error));
+// getData('./movies.json')
+//   .then((movies) => {
+//     console.log(movies);
+//     return getData('./actors.json');
+//   })
+//   .then((actors) => {
+//     console.log(actors);
+//     return getData('./directors.json');
+//   })
+//   .then((directors) => {
+//     console.log(directors);
+//   })
+//   .catch((error) => console.log(error));
+
+const getAllData = async () => {
+  const movies = await getData('./movies.json')
+  const actors = await getData('./actors.json')
+  const directors = await getData('./directors.json')
+  console.log(movies, actors, directors)
+}
+
+const getAllDataWithFetch = async () => {
+  const moviesRes = await fetch('./movies.json')
+  const movies = await moviesRes.json()
+
+  const actorsRes = await fetch('./actors.json')
+  const actors = await actorsRes.json()
+
+  const directorsRes = await fetch('./directors.json')
+  const directors = await directorsRes.json()
+
+  console.log(movies, actors, directors)
+}
+
+const getAllDataPromiseAll = async () => {
+  // destructuring to get responses
+  const [moviesRes, actorsRes, directorsRes] = await Promise.all([
+    fetch('./movies.json'),
+    fetch('./actors.json'),
+    fetch('./directors.json')
+  ])
+
+  const movies = await moviesRes.json()
+  const actors = await actorsRes.json()
+  const directors = await directorsRes.json()
+
+  console.log(movies, actors, directors)
+}
+
+const getAllDataPromiseAll2 = async () => {
+  // destructuring to get responses
+  const [movies, actors, directors] = await Promise.all([
+    fetch('./movies.json').then(res => res.json()),
+    fetch('./actors.json').then(res => res.json()),
+    fetch('./directors.json').then(res => res.json())
+  ])
+
+  console.log(movies, actors, directors)
+}
+
+// getAllData()
+// getAllDataWithFetch()
+getAllDataPromiseAll()
+getAllDataPromiseAll2()
