@@ -3,6 +3,8 @@ const itemInput = document.querySelector('#item-input')
 const itemList = document.querySelector('#item-list')
 const clearBtn = document.getElementById('clear')
 const itemsFilter = document.querySelector('#filter')
+const formBtn = itemForm.querySelector('button')
+let isEditMode = false
 
 function displayItems(){
   // retrieve items from storage and show as page loads
@@ -17,9 +19,24 @@ const onAddItemSubmit = (e) => {
 
   const newItem = itemInput.value
 
-  if(newItem.value === ''){
+  if(newItem === ''){
     alert('Please add an item')
     return
+  }
+
+  // check for edit mode
+  if(isEditMode){
+    const itemToEdit = itemList.querySelector('.edit-mode')
+  
+    removeItemFromStorage(itemToEdit.textContent)
+    itemToEdit.classList.remove('edit-mode')
+    itemToEdit.remove()
+    isEditMode = false
+  } else {
+    if(checkItemExists(newItem)){
+      alert('Item already exists')
+      return
+    }
   }
 
   addItemToDOM(newItem)
@@ -80,7 +97,30 @@ function onClickItem(e) {
   if (e.target.parentNode.classList.contains('remove-item')){
     // target the li element
     removeItem(e.target.parentElement.parentElement)
+  } else {
+    setItemToEdit(e.target)
   }
+}
+
+const checkItemExists = (item) => {
+  const itemsFromStorage = getItemsFromStorage()
+
+  if(itemsFromStorage.includes(item)){
+    return true
+  }
+
+}
+
+const setItemToEdit = (item) => {
+  isEditMode = true
+  itemList.querySelectorAll('li').forEach(i => i.classList.remove('edit-mode'))
+
+  item.classList.add('edit-mode')
+
+  formBtn.innerHTML = `<i class="fa-solid fa-pen"></i> Update Item`
+  formBtn.style.backgroundColor = '#228b22'
+  // item here is the li
+  itemInput.value = item.textContent
 }
 
 function removeItem(item){
@@ -141,6 +181,11 @@ function checkUI(){
     clearBtn.style.display = 'block'
     itemsFilter.style.display = 'block'
   }
+  // resetting button back
+  formBtn.innerHTML = `<i class="fa-solid fa-plus"></i> Add Item`
+  formBtn.style.backgroundColor = '#333'
+
+  isEditMode = false
 }
 
 // initialise rather than having everything in the global scope
