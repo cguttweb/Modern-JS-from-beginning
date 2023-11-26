@@ -4,7 +4,15 @@ const itemList = document.querySelector('#item-list')
 const clearBtn = document.getElementById('clear')
 const itemsFilter = document.querySelector('#filter')
 
-const addItem = (e) => {
+function displayItems(){
+  // retrieve items from storage and show as page loads
+  const itemsFromStorage = getItemsFromStorage()
+
+  itemsFromStorage.forEach(item => addItemToDOM(item))
+  checkUI()
+}
+
+const onAddItemSubmit = (e) => {
   e.preventDefault()
 
   const newItem = itemInput.value
@@ -14,16 +22,44 @@ const addItem = (e) => {
     return
   }
 
-  const li = document.createElement('li')
-  li.appendChild(document.createTextNode(newItem))
+  addItemToDOM(newItem)
 
-  const button = createButton('remove-item btn-link text-red')
-  li.appendChild(button)
-  itemList.appendChild(li)
+  addItemToStorage(newItem)
 
   checkUI()
 
   itemInput.value = ''
+}
+
+function addItemToDOM(item){
+  const li = document.createElement('li')
+  li.appendChild(document.createTextNode(item))
+
+  const button = createButton('remove-item btn-link text-red')
+  li.appendChild(button)
+  itemList.appendChild(li)
+}
+
+function addItemToStorage(item){
+  const itemsFromStorage = getItemsFromStorage()
+  
+  // add item to array
+  itemsFromStorage.push(item)
+  // stringify to store in localStorage as can't store objects
+  localStorage.setItem('items', JSON.stringify(itemsFromStorage))
+}
+
+function getItemsFromStorage(){
+  let itemsFromStorage
+
+  if(localStorage.getItem('items') === null){
+    itemsFromStorage = []
+  } else {
+    // parse to get the array
+    itemsFromStorage = JSON.parse(localStorage.getItem('items'))
+  }
+
+  return itemsFromStorage
 }
 
 function createButton(classes){
@@ -40,20 +76,42 @@ function createIcon(classes){
   return icon
 }
 
-function removeItem(e){
-  if (e.target.parentNode.classList.contains('remove-item')) {
-    if (confirm('Are you sure?')) {
-      e.target.parentNode.parentNode.remove()
-    }
+function onClickItem(e) {
+  if (e.target.parentNode.classList.contains('remove-item')){
+    // target the li element
+    removeItem(e.target.parentElement.parentElement)
+  }
+}
+
+function removeItem(item){
+  // console.log(item);
+  if(confirm('Are you sure?')){
+    item.remove()
+
+    // remove item from storage
+    removeItemFromStorage(item.textContent)
+
+    checkUI()
   }
 
   checkUI()
+}
+
+function removeItemFromStorage(item){
+  let itemsFromStorage = getItemsFromStorage()
+  // console.log(itemsFromStorage);
+  itemsFromStorage = itemsFromStorage.filter(i => i !== item)
+
+  localStorage.setItem('items', JSON.stringify(itemsFromStorage))
 }
 
 function clearItems(){
   while (itemList.firstChild) {
     itemList.removeChild(itemList.firstChild)
   }
+
+  //Clear from localStorage
+  localStorage.removeItem('items')
 
   checkUI()
 }
@@ -85,9 +143,15 @@ function checkUI(){
   }
 }
 
-itemForm.addEventListener('submit', addItem)
-itemList.addEventListener('click', removeItem)
-clearBtn.addEventListener('click', clearItems)
-itemsFilter.addEventListener('input', filterItems)
+// initialise rather than having everything in the global scope
+function init(){
+  itemForm.addEventListener('submit', onAddItemSubmit)
+  itemList.addEventListener('click', onClickItem)
+  clearBtn.addEventListener('click', clearItems)
+  itemsFilter.addEventListener('input', filterItems)
+  document.addEventListener('DOMContentLoaded', displayItems())
+  
+  checkUI()
+}
 
-checkUI()
+init()
